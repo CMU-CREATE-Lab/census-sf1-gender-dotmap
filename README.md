@@ -1,23 +1,25 @@
-# timelapse-toolchain
+# Census Summary 1 Files scripts
 
-a lightweight tool to empower non-technical users to create embedable timelapse visualizations
+A collection of scripts to import Census data into PostgreSQL and a sample script used to generate the Gender Dot Map.
 
-# Setting webapp2 development environment
+## Diretory layout
 
-## Install requirements
+The scripts are organized into three main groups: Python scripts to import the SF1 files from the Census zip files, SQL scripts to create the tables in Postgres, and the Python scripts to generate the gender dot map.
 
-```
-pip install -r requirements.txt
-```
+### SQL files
+The sql folder contains the SQL statements to create the tables to store the 2000 and 2010 Census SF1 data. 
 
-## Update settings and create directory structure
+### Scripts to import SF1 data
+The data_import folder contains the scripts to import the 2000 and 2010 into their corresponding tables.
 
-Edit timelapse_tchain/settings.py to setup the input and output folders.
+### Gender Dot Map scripts
+The logic to generate follows the approach of creating intermediate CSV files and then generating tiles used in the [tilling-helloworld](https://github.com/CMU-CREATE-Lab/tiling-helloworld) tutorial.
 
-## Run webapp2's development server
+```generate_state_csv.py``` runs a SQL query and exports the results to a CSV file that contains the whole list of dots, in this case a dot per person color-coded by sex.  This script uses celery to run a task for each state. The reason for dividing the task by states is to make debugging easier but this is not the most efficient approach and a better way to distribute the load more uniformly could be to launch tasks that process a fixed number of records or launching subtasks from within the per state task. 
+
+```tiling.py``` reads the state CSV files and generates the tiles to use in the Time Machine visualization. This script processes the files sequentially and could be easily parallelized to reduce the time it takes to generate the tiles.
 
 
-```
-cd timelapse_tchain/
-python main.py
-```
+### Celery
+
+```generate_state_csv.py``` uses Celery to generate the CSV files. All the celery code is inside the ``dotgen`` folder. Please see the [Celery documentation](http://docs.celeryproject.org/en/latest/getting-started/index.html) for instructions on how to start the Celery worker and configure the message broker.
